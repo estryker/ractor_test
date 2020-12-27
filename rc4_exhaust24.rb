@@ -45,7 +45,7 @@ end
 
 # send/ receive  : push type
 # yield / take  : pull type 
-pipe = Ractor.new 
+pipe = Ractor.new do 
   loop do
       Ractor.yield  Ractor.receive
   end

@@ -1,0 +1,5 @@
+This is a file in english plain text. There is nothing special about it except that 
+it is in English. There should be a decent distributions of letters, assuming that I take
+special care to include enough normal words. I'm not sure how to include low frequency letters
+without being too obvious about it. Hopefully the use of high frequency letters will be 
+sufficiently close to my model that it will just work itself out. 

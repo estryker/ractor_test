@@ -26,11 +26,11 @@ def top_answer(step:, remainder:,cipher_text:, cipher:, key_byte_size:, plaintex
   top_score = -99
   top_decrypt = ""
   (remainder .. 2**24).step(step).each do | putative_key_num |
-    putative_key = Digest::MD5.digest(putative_key_num.to_s(16))[-5..-1]
+    putative_key = sprintf("%05x", putative_key_num)[0...5] # Digest::MD5.digest(putative_key_num.to_s(16))[-5..-1]
     # this initializes for decryption
     cipher.decrypt
     cipher.key = putative_key
-    putative_plain = rc4.update(cipher)
+    putative_plain = cipher.update(cipher_text)
     score = score_decrypt(putative_plain, plaintext_byte_model)
     if score > top_score
         top_key = putative_key

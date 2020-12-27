@@ -45,20 +45,18 @@ end
 
 # send/ receive  : push type
 # yield / take  : pull type 
-pipe = Ractor.new infile do | infile |
-    cipher_text = File.read(infile).freeze
-    
-    loop do
+pipe = Ractor.new 
+  loop do
       Ractor.yield  Ractor.receive
-    end
+  end
 end
 
 # TODO: how to have all of the loops to stop when one of them returns a score above 0.0
 RN = 7
 rs = RN.times.map{|i|
-  Ractor.new pipe, i do |pipe, i|
+  Ractor.new pipe, infile, i do |pipe, infile, i|
     rc4 = OpenSSL::Cipher.new('RC4-40')
-    cipher_text = pipe.take
+    cipher_text = File.read(infile)
     pipe.send(top_answer(step: RN, remainder: i, cipher_text: cipher_text, cipher: rc4, key_byte_size: 5, plaintext_byte_model: Model))
   end
 }

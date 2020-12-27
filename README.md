@@ -6,8 +6,3 @@
 result is positive, pass messages to all the other Ractors and quit. 
 1. Then do the same, but pick a random word out of /usr/share/dict/words to be the password. Note the time difference in cracking
 
-
-
-
-
-# ractor_test

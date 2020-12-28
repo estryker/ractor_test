@@ -71,7 +71,7 @@ def top_answer(step:, remainder:,cipher_text:, cipher:, key_byte_size:)
   top_key = nil
   top_score = -99
   top_decrypt = ""
-  (remainder .. 2**24).step(step).each do | putative_key_num |
+  (remainder .. 2**32).step(step).each do | putative_key_num |
     putative_key = sprintf("%05x", putative_key_num)[0...5] # Digest::MD5.digest(putative_key_num.to_s(16))[-5..-1]
     # this initializes for decryption
     cipher.decrypt
@@ -84,9 +84,7 @@ def top_answer(step:, remainder:,cipher_text:, cipher:, key_byte_size:)
         top_score = score
         top_decrypt = putative_plain
     end
-    if top_score > 0.0
-        break
-    end
+
   end
   return [top_key, top_score, top_decrypt]
 end

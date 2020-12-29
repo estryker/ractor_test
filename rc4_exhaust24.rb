@@ -61,11 +61,13 @@ end
 
 RN = 7
 rs = RN.times.map{|i|
+  # create a new Ractor that will operate concurrently. If there are enough cores available, 
+  # it will run there. 
   Ractor.new pipe, infile, i, RN do |pipe, infile, i, rn |
     rc4 = OpenSSL::Cipher.new('RC4-40')
-    model = [1.1022717747569128, -1.2539935875616006, -1.0715412114558136, 0.38719776947991313, 1.6845307000026097, -0.7395933064620372, -0.8554740185121767, 1.1968470166179053, 0.8013343423198935, -5.039898589649604, -1.7287413912185645, 0.12571441052969412, -0.7597030032711771, 0.8211626750437087, 0.9027128482015736, -1.6177990626724998, -6.749308461295249, 0.1998478612902792, 0.6214967405755889, 1.3658406631655162, -0.546191980118989, -2.6368337320368367, -0.4744424032799319, -6.230841372361, -1.28104218528319, -6.749308461295249].freeze
     cipher_text = File.read(infile)
     
+    # send to the pipe Ractors incoming port. This is a non-blocking operation
     pipe.send(best_answer(step: rn, remainder: i, cipher_text: cipher_text, cipher: rc4, key_byte_size: 5))
   end
 }

@@ -65,28 +65,33 @@ def entropy(s)
     end
 end
   
-# def top_answer(step:, remainder:,cipher_text:, cipher:, key_byte_size:, plaintext_byte_model:)
-def top_answer(step:, remainder:,cipher_text:, cipher:, key_byte_size:)
+# def best_answer(step:, remainder:,cipher_text:, cipher:, key_byte_size:, plaintext_byte_model:)
+def best_answer(step:, remainder:,cipher_text:, cipher:, key_byte_size:)
   
-  top_key = nil
-  top_score = -99
-  top_decrypt = ""
-  (remainder .. 2**32).step(step).each do | putative_key_num |
+  best_key = "00000"
+  best_score = 8.0
+  best_decrypt = cipher_text
+  
+  (remainder .. 2**20).step(step).each do | putative_key_num |
     putative_key = sprintf("%05x", putative_key_num)[0...5] # Digest::MD5.digest(putative_key_num.to_s(16))[-5..-1]
+    
     # this initializes for decryption
     cipher.decrypt
     cipher.key = putative_key
     putative_plain = cipher.update(cipher_text)
     # score = score_decrypt(putative_plain, plaintext_byte_model)
     score = entropy(putative_plain)
-    if score > top_score
-        top_key = putative_key
-        top_score = score
-        top_decrypt = putative_plain
+    # puts "step #{step} remainder #{remainder} #{putative_key} score: #{score}"
+    
+    if score < best_score
+        # puts "***TOP SCORE*** Step #{step} Remainder #{remainder} #{putative_key}"
+        best_key = putative_key
+        best_score = score
+        best_decrypt = putative_plain
     end
 
   end
-  return [top_key, top_score, top_decrypt]
+  return [best_key, best_score, best_decrypt]
 end
 
 # send/ receive  : push type  send to handle, receive from external 
@@ -104,8 +109,8 @@ rs = RN.times.map{|i|
     rc4 = OpenSSL::Cipher.new('RC4-40')
     model = [1.1022717747569128, -1.2539935875616006, -1.0715412114558136, 0.38719776947991313, 1.6845307000026097, -0.7395933064620372, -0.8554740185121767, 1.1968470166179053, 0.8013343423198935, -5.039898589649604, -1.7287413912185645, 0.12571441052969412, -0.7597030032711771, 0.8211626750437087, 0.9027128482015736, -1.6177990626724998, -6.749308461295249, 0.1998478612902792, 0.6214967405755889, 1.3658406631655162, -0.546191980118989, -2.6368337320368367, -0.4744424032799319, -6.230841372361, -1.28104218528319, -6.749308461295249].freeze
     cipher_text = File.read(infile)
-    # pipe.send(top_answer(step: rn, remainder: i, cipher_text: cipher_text, cipher: rc4, key_byte_size: 5, plaintext_byte_model: model))
-    pipe.send(top_answer(step: rn, remainder: i, cipher_text: cipher_text, cipher: rc4, key_byte_size: 5))
+    # pipe.send(best_answer(step: rn, remainder: i, cipher_text: cipher_text, cipher: rc4, key_byte_size: 5, plaintext_byte_model: model))
+    pipe.send(best_answer(step: rn, remainder: i, cipher_text: cipher_text, cipher: rc4, key_byte_size: 5))
   end
 }
 

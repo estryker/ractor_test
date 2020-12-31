@@ -65,7 +65,7 @@ end
 cipher_text = File.read(infile).freeze
 rs = num_ractors.times.map do |i|
   # create a new Ractor that will operate concurrently. If there are enough cores available, 
-  # it will run there. 
+  # each Ractor should run on its own core 
   Ractor.new pipe, cipher_text, i, num_ractors do |pipe, cipher_text, i, num_ractors |
     rc4 = OpenSSL::Cipher.new('RC4-40')
     

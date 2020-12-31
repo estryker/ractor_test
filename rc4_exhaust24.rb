@@ -4,19 +4,22 @@ require 'digest'
 
 
 if ARGV.length < 2
-    $stderr.puts "Usage: #{$0} infile outfile"
+    $stderr.puts "Usage: #{$0} infile num_ractors"
     exit 1
 end
 
 infile = ARGV[0].dup.freeze
-outfile = ARGV[1].dup.freeze
+num_ractors = ARGV[1].to_i 
 
 def entropy(s)
-    counts = Hash.new(0)
-    s.each_char { |c| counts[c] += 1 }
-  
-    counts.values.reduce(0) do |entropy, count|
-      freq = count / s.length.to_f
+    # flatten the counts a little and prevent log2(0) down below.
+    # Note that we add 256 to the freq calculation below to make sure
+    # the math kinda works out
+    counts = [1] * 256
+    s.each_byte { |b| counts[b] += 1 }
+
+    counts.reduce(0) do |entropy, count|
+      freq = count / (s.length + 256).to_f
       entropy - freq * Math.log2(freq)
     end
 end
@@ -59,19 +62,18 @@ pipe = Ractor.new do
   end
 end
 
-RN = 7
-rs = RN.times.map{|i|
+cipher_text = File.read(infile).freeze
+rs = num_ractors.times.map do |i|
   # create a new Ractor that will operate concurrently. If there are enough cores available, 
   # it will run there. 
-  Ractor.new pipe, infile, i, RN do |pipe, infile, i, rn |
+  Ractor.new pipe, cipher_text, i, num_ractors do |pipe, cipher_text, i, num_ractors |
     rc4 = OpenSSL::Cipher.new('RC4-40')
-    cipher_text = File.read(infile)
     
     # send to the pipe Ractors incoming port. This is a non-blocking operation
-    pipe.send(best_answer(step: rn, remainder: i, cipher_text: cipher_text, cipher: rc4, key_byte_size: 5))
+    pipe.send(best_answer(step: num_ractors, remainder: i, cipher_text: cipher_text, cipher: rc4, key_byte_size: 5))
   end
-}
+end
 
-  RN.times.map {
+num_ractors.times.map do
     pipe.take
-}.each {|x| puts "#######\n" + x.join("\t") + "\n\n"}
+end.each {|x| puts "#######\n" + x.join("\t") + "\n\n"}
